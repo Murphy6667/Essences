@@ -1,0 +1,3005 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>基质词条统计</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            line-height: 1.6;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        
+        /* 日间模式（白底黑字） */
+        body.light-mode {
+            background-color: #f5f5f5;
+            color: #1a1a1a;
+        }
+        
+        body.light-mode .header {
+            background-color: #ffffff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        body.light-mode .header h1 {
+            color: #1a1a1a;
+        }
+        
+        body.light-mode .progress-info {
+            color: #666666;
+        }
+        
+        body.light-mode .progress-bar {
+            background-color: #d1d5db;
+        }
+        
+        body.light-mode .category-card {
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        body.light-mode .category-title {
+            color: #1a1a1a;
+            border-bottom-color: #e5e5e5;
+        }
+        
+        body.light-mode .affix-table th {
+            background-color: #e5e5e5;
+            color: #1a1a1a;
+        }
+        
+        body.light-mode .affix-table td {
+            border-color: #d1d5db;
+        }
+        
+        body.light-mode .affix-table th,
+        body.light-mode .affix-table td {
+            border-color: #d1d5db;
+        }
+        
+        body.light-mode .affix-card {
+            background-color: #f0f0f0;
+        }
+        
+        body.light-mode .affix-card:hover {
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+        
+        body.light-mode .btn-secondary {
+            background-color: #9ca3af;
+            color: #1a1a1a;
+        }
+        
+        body.light-mode .btn-secondary:hover {
+            background-color: #6b7280;
+        }
+        
+        body.light-mode .theme-toggle {
+            background-color: #3b82f6;
+            color: #ffffff;
+        }
+        
+        body.light-mode .theme-toggle:hover {
+            background-color: #2563eb;
+        }
+        
+        body.light-mode .row-header {
+            background-color: #e5e5e5 !important;
+            color: #1a1a1a !important;
+        }
+        
+        /* 输入框弹窗样式 */
+        .input-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .input-modal.active {
+            display: flex;
+        }
+        
+        .input-modal-content {
+            background-color: #2d2d2d;
+            border-radius: 8px;
+            padding: 1.5rem;
+            min-width: 300px;
+            text-align: center;
+        }
+        
+        body.light-mode .input-modal-content {
+            background-color: #ffffff;
+        }
+        
+        .input-modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+        
+        body.light-mode .input-modal-title {
+            color: #1a1a1a;
+        }
+        
+        .input-modal-affix {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #3a86ff;
+            margin-bottom: 1rem;
+        }
+        
+        .input-modal-inputs {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .input-modal-inputs uni-input {
+            width: 50px;
+            height: 50px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 600;
+            border: 2px solid #374151;
+            border-radius: 4px;
+            background-color: #1e1e1e;
+            color: #ffffff;
+        }
+        
+        body.light-mode .input-modal-inputs uni-input {
+            background-color: #f5f5f5;
+            color: #1a1a1a;
+            border-color: #d1d5db;
+        }
+        
+        .input-modal-inputs uni-input:focus {
+            outline: none;
+            border-color: #3a86ff;
+        }
+        
+        .input-modal-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+        }
+        
+        .input-modal-buttons .btn {
+            min-width: 80px;
+        }
+        
+        .input-modal-buttons .btn-confirm {
+            background-color: #10b981;
+            color: white;
+        }
+        
+        .input-modal-buttons .btn-confirm:hover {
+            background-color: #059669;
+        }
+        
+        .input-modal-buttons .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        
+        .input-modal-buttons .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+        
+        .input-modal-buttons .btn-cancel {
+            background-color: #6b7280;
+            color: white;
+        }
+        
+        .input-modal-buttons .btn-cancel:hover {
+            background-color: #4b5563;
+        }
+        
+        .input-modal-buttons .btn-delete {
+            background-color: #ef4444;
+            color: white;
+        }
+        
+        .input-modal-buttons .btn-delete:hover {
+            background-color: #dc2626;
+        }
+        
+        /* 已有数值列表 */
+        .existing-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+        
+        .existing-item {
+            background-color: #374151;
+            padding: 0.3rem 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .existing-item:hover {
+            background-color: #4b5563;
+        }
+        
+        .existing-item.selected {
+            background-color: #3a86ff;
+            color: white;
+        }
+        
+        .existing-item .remove-btn {
+            font-size: 1.2rem;
+            line-height: 1;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        
+        .existing-item:hover .remove-btn {
+            opacity: 1;
+        }
+        
+        /* 顶部标题栏 */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background-color: #1e1e1e;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-primary {
+            background-color: #3a86ff;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #2563eb;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background-color: #6b7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #4b5563;
+            transform: translateY(-1px);
+        }
+        
+        /* 主题切换按钮 */
+        .theme-toggle {
+            background-color: #f59e0b;
+            color: #1e1e1e;
+            min-width: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .theme-toggle:hover {
+            background-color: #d97706;
+            transform: translateY(-1px);
+        }
+        
+        .theme-toggle .icon {
+            font-size: 1.2rem;
+        }
+        
+        /* 进度条 */
+        .progress-container {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            margin-bottom: 0.3rem;
+            color: #9ca3af;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background-color: #374151;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #3a86ff;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        /* 主内容区域 */
+        .main-content {
+            margin-top: 1rem;
+            padding: 2rem;
+            min-width: 1600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        /* 分类卡片 */
+        .category-card {
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            min-width: 1600px;
+        }
+        
+        .category-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #ffffff;
+            border-bottom: 1px solid #374151;
+            padding-bottom: 0.5rem;
+        }
+        
+        /* 词条表格布局 */
+        .affix-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            table-layout: fixed;
+        }
+        
+        .affix-table th,
+        .affix-table td {
+            border: 1px solid #374151;
+            padding: 0;
+            text-align: center;
+            width: 120px;
+            height: 50px;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+        
+        .affix-table th {
+            background-color: #252525;
+            font-weight: 600;
+            font-size: 0.85rem;
+            color: #ffffff;
+            width: 120px;
+            height: 40px;
+            white-space: nowrap;
+        }
+        
+        /* 词条卡片 */
+        .affix-card {
+            background-color: #2d2d2d;
+            border: none;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        
+        .affix-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+            z-index: 10;
+        }
+        
+        .affix-card.selected {
+            background-color: #3a86ff;
+            color: white;
+        }
+        
+        body.light-mode .affix-card.selected {
+            background-color: #3a86ff;
+            color: white;
+        }
+        
+        /* 掉落配置选择器样式 */
+        .recommend-system-section {
+            background-color: #1e1e1e;
+            padding: 2rem;
+            margin-top: 100px;
+            margin-bottom: 1rem;
+            margin-left: auto;
+            margin-right: auto;
+            min-width: 1600px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        .recommend-system-container {
+            width: 100%;
+        }
+        
+        .config-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #ffffff;
+        }
+        
+        .recommend-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 2rem 0 1.5rem 0;
+            color: #ffffff;
+            padding-top: 1.5rem;
+            border-top: 1px solid #374151;
+        }
+        
+        .config-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .config-subtitle {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            color: #e0e0e0;
+        }
+        
+        .main-attr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        
+        .attr-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .attr-checkbox:hover {
+            background-color: #374151;
+        }
+        
+        .attr-checkbox uni-input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #3a86ff;
+        }
+        
+        .attr-checkbox span {
+            font-size: 0.9rem;
+        }
+        
+        /* 副属性标签页 */
+        .sub-attr-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .tab-btn {
+            padding: 0.5rem 1rem;
+            border: 1px solid #374151;
+            border-radius: 4px;
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .tab-btn:hover {
+            background-color: #374151;
+        }
+        
+        .tab-btn.active {
+            background-color: #3a86ff;
+            border-color: #3a86ff;
+            color: white;
+        }
+        
+        .sub-attr-content {
+            position: relative;
+        }
+        
+        .sub-attr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            padding: 1rem;
+            background-color: #2d2d2d;
+            border-radius: 4px;
+            display: none;
+        }
+        
+        .sub-attr-grid.active {
+            display: grid;
+        }
+        
+        .sub-attr-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: 4px;
+            transition: background-color 0.2s ease;
+        }
+        
+        .sub-attr-item:hover {
+            background-color: #374151;
+        }
+        
+        .sub-attr-item uni-input[type="radio"] {
+            width: 18px;
+            height: 18px;
+            accent-color: #3a86ff;
+        }
+        
+        .sub-attr-item span {
+            font-size: 0.9rem;
+        }
+        
+        /* 推荐按钮 */
+        .recommend-buttons {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .recommend-input {
+            flex: 1;
+            min-width: 200px;
+            padding: 0.5rem 1rem;
+            border: 1px solid #374151;
+            border-radius: 4px;
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+            font-size: 0.9rem;
+        }
+        
+        .recommend-input:focus {
+            outline: none;
+            border-color: #3a86ff;
+        }
+        
+        /* 推荐结果样式 */
+        .recommend-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .recommend-card {
+            background-color: #1e1e1e;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 1.5rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            word-wrap: break-word;
+        }
+        
+        .recommend-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        .recommend-card.warning {
+            border-color: #ef4444;
+            background-color: rgba(239, 68, 68, 0.1);
+        }
+        
+        .recommend-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #ffffff;
+        }
+        
+        .recommend-card .warning-text {
+            color: #ef4444;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .recommend-config {
+            margin-bottom: 1rem;
+        }
+        
+        .recommend-config-label {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            margin-bottom: 0.3rem;
+        }
+        
+        .recommend-config-value {
+            font-size: 0.9rem;
+            color: #e0e0e0;
+        }
+        
+        .recommend-prediction {
+            margin-top: 1rem;
+        }
+        
+        .recommend-prediction-label {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            margin-bottom: 0.3rem;
+        }
+        
+        .recommend-prediction-value {
+            font-size: 0.9rem;
+            color: #e0e0e0;
+        }
+        
+        .recommend-prediction-value .must {
+            color: #10b981;
+            font-weight: 500;
+        }
+        
+        .recommend-prediction-value .random {
+            color: #f59e0b;
+            font-weight: 500;
+        }
+        
+        /* 日间模式样式 */
+        body.light-mode .recommend-system-section {
+            background-color: #ffffff;
+            border-color: #e5e5e5;
+        }
+        
+        body.light-mode .config-title,
+        body.light-mode .recommend-title {
+            color: #1a1a1a;
+        }
+        
+        body.light-mode .recommend-title {
+            border-top-color: #e5e5e5;
+        }
+        
+        body.light-mode .config-subtitle {
+            color: #374151;
+        }
+        
+        body.light-mode .attr-checkbox:hover {
+            background-color: #f3f4f6;
+        }
+        
+        body.light-mode .tab-btn {
+            background-color: #f3f4f6;
+            color: #374151;
+            border-color: #d1d5db;
+        }
+        
+        body.light-mode .tab-btn:hover {
+            background-color: #e5e7eb;
+        }
+        
+        body.light-mode .sub-attr-grid {
+            background-color: #f3f4f6;
+        }
+        
+        body.light-mode .sub-attr-item:hover {
+            background-color: #e5e7eb;
+        }
+        
+        body.light-mode .recommend-input {
+            background-color: #f3f4f6;
+            color: #1a1a1a;
+            border-color: #d1d5db;
+        }
+        
+        body.light-mode .recommend-title {
+            color: #1a1a1a;
+        }
+        
+        body.light-mode .recommend-card {
+            background-color: #ffffff;
+            border-color: #d1d5db;
+        }
+        
+        body.light-mode .recommend-card h3 {
+            color: #1a1a1a;
+        }
+        
+        body.light-mode .recommend-config-label {
+            color: #6b7280;
+        }
+        
+        body.light-mode .recommend-config-value {
+            color: #374151;
+        }
+        
+        body.light-mode .recommend-prediction-label {
+            color: #6b7280;
+        }
+        
+        body.light-mode .recommend-prediction-value {
+            color: #374151;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .recommend-system-section {
+                padding: 1rem;
+                margin-top: 150px;
+                overflow-x: auto;
+                min-width: 1600px;
+            }
+            
+            .main-attr-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .sub-attr-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .recommend-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .recommend-input {
+                width: 100%;
+            }
+            
+            .recommend-list {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .affix-card.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .affix-name {
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        
+        .affix-content {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: flex-start;
+            height: 100%;
+            padding: 0 0.5rem;
+        }
+        
+        .affix-levels {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            margin-left: 0.5rem;
+        }
+        
+        .affix-level {
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.2rem;
+            }
+            
+            .controls {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .main-content {
+                margin-top: 1rem;
+                padding: 1rem;
+                overflow-x: auto;
+                min-width: 1600px;
+            }
+            
+            .affix-table {
+                font-size: 0.7rem;
+                table-layout: fixed;
+            }
+            
+            .affix-table th,
+            .affix-table td {
+                padding: 0;
+                width: 90px;
+                height: 40px;
+                white-space: nowrap;
+            }
+            
+            .affix-table th {
+                font-size: 0.7rem;
+                width: 90px;
+                height: 35px;
+                white-space: nowrap;
+            }
+            
+            .affix-card {
+                padding: 0.2rem;
+            }
+            
+            .affix-name {
+                font-size: 0.7rem;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .affix-table {
+                font-size: 0.6rem;
+            }
+            
+            .affix-table th,
+            .affix-table td {
+                width: 80px;
+                height: 35px;
+                white-space: nowrap;
+            }
+            
+            .affix-table th {
+                font-size: 0.6rem;
+                width: 80px;
+                height: 30px;
+                white-space: nowrap;
+            }
+            
+            .affix-card {
+                padding: 0.1rem;
+            }
+            
+            .affix-name {
+                font-size: 0.6rem;
+            }
+        }
+        
+        /* 文本输入弹窗样式 */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        body.light-mode .modal {
+            background-color: rgba(0,0,0,0.2);
+        }
+        
+        .modal-content {
+            background-color: #1e1e1e;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 600px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        body.light-mode .modal-content {
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .modal-header h3 {
+            margin: 0;
+            color: #ffffff;
+        }
+        
+        body.light-mode .modal-header h3 {
+            color: #1a1a1a;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: #ffffff;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+        body.light-mode .close:hover,
+        body.light-mode .close:focus {
+            color: #1a1a1a;
+        }
+        
+        .modal-body {
+            margin-bottom: 1rem;
+        }
+        
+        .modal-body uni-textarea {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #374151;
+            border-radius: 4px;
+            background-color: #2d2d2d;
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            resize: vertical;
+        }
+        
+        body.light-mode .modal-body uni-textarea {
+            background-color: #f5f5f5;
+            color: #1a1a1a;
+            border-color: #d1d5db;
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+        
+
+    </style>
+</head>
+<body>
+    <!-- 顶部标题栏 -->
+    <header class="header">
+        <h1>基质词条统计</h1>
+        <div class="controls">
+            <button class="btn btn-primary" id="selectAllBtn">全选</button>
+            <button class="btn btn-secondary" id="resetBtn">重置</button>
+            <button class="btn btn-secondary" id="exportBtn">导出</button>
+            <button class="btn btn-secondary" id="importBtn">导入</button>
+            <button class="btn btn-secondary" id="logImportBtn">导入日志</button>
+            <button class="btn btn-secondary" id="textImportBtn">导入文本</button>
+            <input type="file" id="importFile" accept=".json" style="display: none;">
+            <input type="file" id="logFile" accept=".log" style="display: none;">
+            <button class="btn theme-toggle" id="themeToggle">
+                <span class="icon">🌙</span>
+            </button>
+            <div class="progress-container">
+                <div class="progress-info">
+                    <span>已收集: <span id="collectedCount">0</span></span>
+                    <span>总数: <span id="totalCount">0</span></span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- 文本输入弹窗 -->
+    <div id="textImportModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>导入文本</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <textarea id="textInput" rows="15" placeholder="请输入日志文本..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelTextImport">取消</button>
+                <button class="btn btn-primary" id="confirmTextImport">确认导入</button>
+            </div>
+        </div>
+    </div>
+    
+
+    
+    <!-- 地图刷取推荐系统 -->
+    <section class="recommend-system-section">
+        <div class="recommend-system-container">
+            <h2 class="config-title">地图刷取推荐</h2>
+            <div class="recommend-buttons">
+                <input type="text" id="targetAffix" placeholder="输入目标组合（如：敏攻强）" class="recommend-input">
+                <button class="btn btn-primary" id="recommendBtn">推荐</button>
+                <button class="btn btn-secondary" id="autoRecommendBtn">智能推荐</button>
+            </div>
+            
+            <h2 class="recommend-title">推荐关卡</h2>
+            <div class="recommend-list" id="recommendList">
+                <!-- 推荐结果将通过JS生成 -->
+            </div>
+        </div>
+    </section>
+    
+    <!-- 输入框弹窗 -->
+    <div class="input-modal" id="inputModal">
+            <div class="input-modal-content">
+                <div class="input-modal-title">请输入数值</div>
+                <div class="input-modal-affix" id="modalAffixName">敏攻强</div>
+                <div class="input-modal-existing" id="existingValues" style="margin: 0.5rem 0; font-size: 0.9rem; color: #9ca3af; display: none;">
+                    <div>已有数值：</div>
+                    <div class="existing-list" id="existingList"></div>
+                </div>
+                <div class="input-modal-inputs">
+                    <input type="number" id="input1" min="1" max="6" value="1" maxlength="1" inputmode="numeric" pattern="[1-6]">
+                    <input type="number" id="input2" min="1" max="6" value="1" maxlength="1" inputmode="numeric" pattern="[1-6]">
+                    <input type="number" id="input3" min="1" max="3" value="1" maxlength="1" inputmode="numeric" pattern="[1-3]">
+                </div>
+                <div class="input-modal-buttons">
+                    <button class="btn btn-confirm" id="confirmBtn">确认</button>
+                    <button class="btn btn-secondary" id="addBtn">新增</button>
+                    <button class="btn btn-delete" id="deleteBtn">删除</button>
+                    <button class="btn btn-cancel" id="cancelBtn">取消</button>
+                </div>
+            </div>
+        </div>
+    
+    <!-- 主内容区域 -->
+    <main class="main-content" id="mainContent">
+        <!-- 分类卡片将通过JavaScript动态生成 -->
+    </main>
+    
+    <script>
+        // 1. 定义所有可能的副属性（用于生成选择器选项）
+        const allAddProps = ["攻击提升", "灼热伤害提升", "电磁伤害提升", "寒冷伤害提升", "自然伤害提升", "源石技艺提升", "终结技充能效率提升", "法术伤害提升", "生命提升", "物理伤害提升", "暴击率提升", "治疗效率提升"];
+        const allSkillProps = ["强攻", "压制", "追袭", "粉碎", "巧技", "迸发", "流转", "效益", "昂扬", "附术", "医疗", "切骨", "残暴", "夜幕"];
+        
+        // 属性映射表：属性名称到对应的ID和前缀/后缀
+        const attributeMap = {
+            // 主属性
+            '敏捷提升': { type: 'category', id: 'agility', prefix: '敏' },
+            '力量提升': { type: 'category', id: 'strength', prefix: '力' },
+            '意志提升': { type: 'category', id: 'will', prefix: '意' },
+            '智识提升': { type: 'category', id: 'intelligence', prefix: '智' },
+            '主能力提升': { type: 'category', id: 'main', prefix: '主' },
+            
+            // 附加属性
+            '攻击提升': { type: 'attribute', id: 'attack', suffix: '攻' },
+            '生命提升': { type: 'attribute', id: 'life', suffix: '生' },
+            '物理伤害提升': { type: 'attribute', id: 'physical', suffix: '物' },
+            '灼热伤害提升': { type: 'attribute', id: 'fire', suffix: '灼' },
+            '电磁伤害提升': { type: 'attribute', id: 'electro', suffix: '电' },
+            '寒冷伤害提升': { type: 'attribute', id: 'cold', suffix: '寒' },
+            '自然伤害提升': { type: 'attribute', id: 'nature', suffix: '自' },
+            '暴击率提升': { type: 'attribute', id: 'crit', suffix: '暴' },
+            '源石技艺提升': { type: 'attribute', id: 'origin', suffix: '源' },
+            '终结技充能效率提升': { type: 'attribute', id: 'ultimate', suffix: '终' },
+            '终结技充能效率': { type: 'attribute', id: 'ultimate', suffix: '终' },
+            '法术伤害提升': { type: 'attribute', id: 'magic', suffix: '法' },
+            '治疗效率提升': { type: 'attribute', id: 'heal', suffix: '疗' },
+            
+            // 技能属性
+            '强攻': { type: 'skill', id: 'strong', suffix: '强' },
+            '压制': { type: 'skill', id: 'suppress', suffix: '压' },
+            '追袭': { type: 'skill', id: 'pursue', suffix: '追' },
+            '粉碎': { type: 'skill', id: 'crush', suffix: '粉' },
+            '昂扬': { type: 'skill', id: '昂扬', suffix: '昂' },
+            '巧技': { type: 'skill', id: 'skill', suffix: '巧' },
+            '残暴': { type: 'skill', id: 'brutal', suffix: '残' },
+            '附术': { type: 'skill', id: 'attach', suffix: '附' },
+            '医疗': { type: 'skill', id: 'medical', suffix: '医' },
+            '切骨': { type: 'skill', id: 'bone', suffix: '切' },
+            '迸发': { type: 'skill', id: 'burst', suffix: '迸' },
+            '进发': { type: 'skill', id: 'burst', suffix: '迸' },
+            '夜幕': { type: 'skill', id: 'night', suffix: '夜' },
+            '流转': { type: 'skill', id: 'flow', suffix: '流' },
+            '效益': { type: 'skill', id: 'benefit', suffix: '效' }
+        };
+        
+        // 解析文本输入的日志
+        const parseLogText = (text) => {
+            console.log('开始解析文本日志');
+            let processedCount = 0;
+            
+            // 按行分割文本
+            const lines = text.split('\n');
+            
+            // 查找所有OCR到技能的行
+            const skillLines = lines.filter(line => line.includes('OCR到技能：'));
+            
+            if (skillLines.length === 0) {
+                alert('未找到技能信息，请检查文本格式');
+                return;
+            }
+            
+            console.log('找到', skillLines.length, '条技能信息');
+            
+            // 处理每一行技能信息
+            skillLines.forEach(line => {
+                console.log('处理技能行:', line);
+                
+                // 提取技能部分 - 修改正则以匹配整行
+                const skillPart = line.match(/OCR到技能：(.+)/);
+                if (skillPart) {
+                    const skills = skillPart[1].split('|');
+                    
+                    // 分离主属性、附加属性和技能属性
+                    let categoryId = '';
+                    let categoryPrefix = '';
+                    let attributeId = '';
+                    let attributeSuffix = '';
+                    let skillId = '';
+                    let skillSuffix = '';
+                    const levels = [];
+                    
+                    skills.forEach(skill => {
+                        // 提取技能名称和等级
+                        const match = skill.match(/(.+?)\((\+\d+)\)/);
+                        if (match) {
+                            const name = match[1].trim();
+                            const level = match[2].replace('+', '');
+                            
+                            console.log('解析技能:', name, level);
+                            
+                            if (attributeMap[name]) {
+                                const info = attributeMap[name];
+                                if (info.type === 'category') {
+                                    categoryId = info.id;
+                                    categoryPrefix = info.prefix;
+                                } else if (info.type === 'attribute') {
+                                    attributeId = info.id;
+                                    attributeSuffix = info.suffix;
+                                } else if (info.type === 'skill') {
+                                    skillId = info.id;
+                                    skillSuffix = info.suffix;
+                                }
+                                levels.push(level);
+                            }
+                        }
+                    });
+                    
+                    // 生成词条ID和等级
+                    if (categoryId && attributeId && skillId && levels.length === 3) {
+                        const affixId = `${categoryId}-${attributeId}-${skillId}`;
+                        const affixBaseName = categoryPrefix + attributeSuffix + skillSuffix;
+                        const levelValue = levels.join('');
+                        
+                        console.log(`生成组合 ${affixBaseName} 等级 ${levelValue}`);
+                        
+                        // 确保affixData[affixId]是数组
+                        if (!affixData[affixId]) {
+                            affixData[affixId] = [];
+                        }
+                        
+                        // 检查是否已存在相同等级
+                        if (!affixData[affixId].includes(levelValue)) {
+                            // 添加新值
+                            affixData[affixId].push(levelValue);
+                            
+                            // 按照分数排序：前两位直接对应积分，第三位乘2
+                            affixData[affixId].sort((a, b) => {
+                                const scoreA = parseInt(a[0]) + parseInt(a[1]) + parseInt(a[2]) * 2;
+                                const scoreB = parseInt(b[0]) + parseInt(b[1]) + parseInt(b[2]) * 2;
+                                return scoreB - scoreA; // 降序排列
+                            });
+                            
+                            // 如果超过5条数据，只保留前5条
+                            if (affixData[affixId].length > 5) {
+                                affixData[affixId] = affixData[affixId].slice(0, 5);
+                                console.log(`组合 ${affixBaseName} 已超过5条数据，只保留积分最高的5条`);
+                            }
+                            
+                            updateAffixCardDisplay(affixId, affixBaseName);
+                            console.log(`已添加组合 ${affixBaseName} 等级 ${levelValue}`);
+                            processedCount++;
+                        } else {
+                            console.log(`组合 ${affixBaseName} 等级 ${levelValue} 已存在`);
+                        }
+                    } else {
+                        console.log('无法生成词条，缺少必要信息');
+                    }
+                }
+            });
+            
+            // 保存数据并更新进度
+            saveToLocalStorage();
+            updateProgress();
+            alert(`文本解析完成，已处理 ${processedCount} 条属性信息`);
+        };
+
+        // 2. 录入关卡掉落数据
+        const stageData = {
+            "枢纽区": {
+                add: ["攻击提升", "灼热伤害提升", "电磁伤害提升", "寒冷伤害提升", "自然伤害提升", "源石技艺提升", "终结技充能效率提升", "法术伤害提升"],
+                skill: ["强攻", "压制", "追袭", "粉碎", "巧技", "迸发", "流转", "效益"]
+            },
+            "源石研究园": {
+                add: ["攻击提升", "物理伤害提升", "电磁伤害提升", "寒冷伤害提升", "自然伤害提升", "暴击率提升", "终结技充能效率提升", "法术伤害提升"],
+                skill: ["压制", "追袭", "昂扬", "巧技", "附术", "医疗", "切骨", "效益"]
+            },
+            "矿脉源区": {
+                add: ["生命提升", "物理伤害提升", "灼热伤害提升", "寒冷伤害提升", "自然伤害提升", "暴击率提升", "源石技艺提升", "治疗效率提升"],
+                skill: ["强攻", "压制", "巧技", "残暴", "附术", "迸发", "夜幕", "效益"]
+            },
+            "供能高地": {
+                add: ["攻击提升", "生命提升", "物理伤害提升", "灼热伤害提升", "自然伤害提升", "暴击率提升", "源石技艺提升", "治疗效率提升"],
+                skill: ["追袭", "粉碎", "昂扬", "残暴", "附术", "医疗", "切骨", "流转"]
+            },
+            "武陵城": {
+                add: ["攻击提升", "生命提升", "电磁伤害提升", "寒冷伤害提升", "暴击率提升", "终结技充能效率提升", "法术伤害提升", "治疗效率提升"],
+                skill: ["强攻", "粉碎", "残暴", "医疗", "切骨", "迸发", "夜幕", "流转"]
+            },
+            "清波寨": {
+                add: ["生命提升", "物理伤害提升", "电磁伤害提升", "寒冷伤害提升", "源石技艺提升", "终结技充能效率提升", "法术伤害提升", "治疗效率提升"],
+                skill: ["压制", "粉碎", "昂扬", "巧技", "医疗", "切骨", "迸发", "夜幕"]
+            },
+            "首墩": {
+                add: ["攻击提升", "物理伤害提升", "灼热伤害提升", "电磁伤害提升", "自然伤害提升", "暴击率提升", "终结技充能效率提升", "法术伤害提升"],
+                skill: ["强攻", "追袭", "昂扬", "残暴", "附术", "夜幕", "流转", "效益"]
+            }
+        };
+
+        // 数据结构
+        const data = {
+            // 5大分类
+            categories: [
+                { id: 'agility', name: '敏捷', prefix: '敏' },
+                { id: 'strength', name: '力量', prefix: '力' },
+                { id: 'will', name: '意志', prefix: '意' },
+                { id: 'intelligence', name: '智识', prefix: '智' },
+                { id: 'main', name: '主能力', prefix: '主' }
+            ],
+            
+            // 13个属性列
+            attributes: [
+                { id: 'attack', name: '攻击提升', suffix: '攻' },
+                { id: 'life', name: '生命提升', suffix: '生' },
+                { id: 'physical', name: '物理伤害提升', suffix: '物' },
+                { id: 'fire', name: '灼热伤害提升', suffix: '灼' },
+                { id: 'electro', name: '电磁伤害提升', suffix: '电' },
+                { id: 'cold', name: '寒冷伤害提升', suffix: '寒' },
+                { id: 'nature', name: '自然伤害提升', suffix: '自' },
+                { id: 'crit', name: '暴击率提升', suffix: '暴' },
+                { id: 'origin', name: '源石技艺提升', suffix: '源' },
+                { id: 'ultimate', name: '终结技充能效率提升', suffix: '终' },
+                { id: 'magic', name: '法术伤害提升', suffix: '法' },
+                { id: 'heal', name: '治疗效率提升', suffix: '疗' }
+            ],
+            
+            // 15个词条行
+            suffixes: [
+                { id: 'strong', name: '强攻', suffix: '强' },
+                { id: 'suppress', name: '压制', suffix: '压' },
+                { id: 'pursue', name: '追袭', suffix: '追' },
+                { id: 'crush', name: '粉碎', suffix: '粉' },
+                { id: '昂扬', name: '昂扬', suffix: '昂' },
+                { id: 'skill', name: '巧技', suffix: '巧' },
+                { id: 'brutal', name: '残暴', suffix: '残' },
+                { id: 'attach', name: '附术', suffix: '附' },
+                { id: 'medical', name: '医疗', suffix: '医' },
+                { id: 'bone', name: '切骨', suffix: '切' },
+                { id: 'burst', name: '迸发', suffix: '迸' },
+                { id: 'night', name: '夜幕', suffix: '夜' },
+                { id: 'flow', name: '流转', suffix: '流' },
+                { id: 'benefit', name: '效益', suffix: '效' }
+            ]
+        };
+        
+        // 生成所有词条组合
+        const generateAffixes = () => {
+            const affixes = [];
+            
+            data.categories.forEach(category => {
+                data.attributes.forEach(attribute => {
+                    data.suffixes.forEach(suffix => {
+                        const affixName = category.prefix + attribute.suffix + suffix.suffix;
+                        affixes.push({
+                            id: `${category.id}-${attribute.id}-${suffix.id}`,
+                            name: affixName,
+                            category: category.id,
+                            attribute: attribute.id,
+                            suffix: suffix.id
+                        });
+                    });
+                });
+            });
+            
+            return affixes;
+        };
+        
+        // 全局变量
+        let affixes = generateAffixes();
+        let affixData = {}; // 格式: { affixId: [value1, value2, ...] }
+        let currentEditingAffix = null;
+        let currentEditingIndex = -1;
+        
+        // 从localStorage加载数据
+        const loadFromLocalStorage = () => {
+            const saved = localStorage.getItem('affixData');
+            if (saved) {
+                affixData = JSON.parse(saved);
+                // 确保数据结构正确（转换旧格式）
+                Object.keys(affixData).forEach(affixId => {
+                    if (typeof affixData[affixId] === 'string') {
+                        affixData[affixId] = [affixData[affixId]];
+                    }
+                });
+            }
+        };
+        
+        // 保存到localStorage
+        const saveToLocalStorage = () => {
+            localStorage.setItem('affixData', JSON.stringify(affixData));
+        };
+        
+        // 更新进度条
+        const updateProgress = () => {
+            // 计算收集的词条数量（每个词条算一个，不管有多少个等级）
+            const collected = Object.keys(affixData).length;
+            const total = affixes.length;
+            const percentage = total > 0 ? (collected / total) * 100 : 0;
+            
+            document.getElementById('collectedCount').textContent = collected;
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('progressFill').style.width = `${percentage}%`;
+        };
+        
+        // 渲染分类卡片
+        const renderCategories = () => {
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = '';
+            
+            data.categories.forEach(category => {
+                const categoryCard = document.createElement('div');
+                categoryCard.className = 'category-card';
+                categoryCard.id = `category-${category.id}`;
+                
+                const categoryTitle = document.createElement('h2');
+                categoryTitle.className = 'category-title';
+                categoryTitle.textContent = category.name;
+                categoryCard.appendChild(categoryTitle);
+                
+                // 创建表格
+                const affixTable = document.createElement('table');
+                affixTable.className = 'affix-table';
+                
+                // 创建表头
+                const thead = document.createElement('thead');
+                const headerRow = document.createElement('tr');
+                
+                // 空单元格（行头位置）
+                const emptyTh = document.createElement('th');
+                headerRow.appendChild(emptyTh);
+                
+                // 添加属性列表头
+                data.attributes.forEach(attribute => {
+                    const th = document.createElement('th');
+                    th.textContent = attribute.name;
+                    headerRow.appendChild(th);
+                });
+                
+                thead.appendChild(headerRow);
+                affixTable.appendChild(thead);
+                
+                // 创建表格主体
+                const tbody = document.createElement('tbody');
+                
+                // 遍历词条行
+                data.suffixes.forEach(suffix => {
+                    const row = document.createElement('tr');
+                    
+                    // 添加行头
+                    const rowHeader = document.createElement('td');
+                    rowHeader.className = 'row-header';
+                    rowHeader.style.backgroundColor = '#252525';
+                    rowHeader.style.fontWeight = '600';
+                    rowHeader.textContent = suffix.name;
+                    row.appendChild(rowHeader);
+                    
+                    // 遍历属性列
+                    data.attributes.forEach(attribute => {
+                        const cell = document.createElement('td');
+                        
+                        // 生成词条ID
+                        const affixId = `${category.id}-${attribute.id}-${suffix.id}`;
+                        const affixBaseName = category.prefix + attribute.suffix + suffix.suffix;
+                        
+                        // 创建词条卡片
+                        const affixCard = document.createElement('div');
+                        affixCard.className = 'affix-card';
+                        affixCard.id = `affix-${affixId}`;
+                        
+                        // 检查是否有数据
+                        if (affixData[affixId] && affixData[affixId].length > 0) {
+                            affixCard.classList.add('selected');
+                        }
+                        
+                        // 生成词条名称
+                        const affixContent = document.createElement('div');
+                        affixContent.className = 'affix-content';
+                        
+                        // 组合名
+                        const affixName = document.createElement('div');
+                        affixName.className = 'affix-name';
+                        affixName.id = `name-${affixId}`;
+                        affixName.textContent = affixBaseName;
+                        affixContent.appendChild(affixName);
+                        
+                        // 等级数据
+                        if (affixData[affixId] && affixData[affixId].length > 0) {
+                            const affixLevels = document.createElement('div');
+                            affixLevels.className = 'affix-levels';
+                            affixData[affixId].forEach(level => {
+                                const levelEl = document.createElement('div');
+                                levelEl.className = 'affix-level';
+                                levelEl.textContent = level;
+                                affixLevels.appendChild(levelEl);
+                            });
+                            affixContent.appendChild(affixLevels);
+                        }
+                        
+                        affixCard.appendChild(affixContent);
+                        
+                        // 点击事件
+                        affixCard.addEventListener('click', () => {
+                            openInputModal(affixId, affixBaseName);
+                        });
+                        
+                        cell.appendChild(affixCard);
+                        row.appendChild(cell);
+                    });
+                    
+                    tbody.appendChild(row);
+                });
+                
+                affixTable.appendChild(tbody);
+                categoryCard.appendChild(affixTable);
+                mainContent.appendChild(categoryCard);
+            });
+        };
+        
+        // 全选/取消全选
+        const toggleSelectAll = () => {
+            const selectAllBtn = document.getElementById('selectAllBtn');
+            const isAllSelected = Object.keys(affixData).length === affixes.length;
+            
+            if (isAllSelected) {
+                // 取消全选
+                if (confirm('确定要取消全选吗？这将清除所有已收集的词条数据。')) {
+                    affixData = {};
+                    selectAllBtn.textContent = '全选';
+                    saveToLocalStorage();
+                    renderCategories();
+                    updateProgress();
+                }
+            } else {
+                // 全选 - 设置默认数值111
+                if (confirm('确定要全选所有词条吗？这将为所有词条设置默认数值111。')) {
+                    affixData = {};
+                    affixes.forEach(affix => {
+                        affixData[affix.id] = ['111'];
+                    });
+                    selectAllBtn.textContent = '取消全选';
+                    saveToLocalStorage();
+                    renderCategories();
+                    updateProgress();
+                }
+            }
+        };
+        
+        // 重置
+        const resetProgress = () => {
+            if (confirm('确定要重置所有数据吗？这将清除所有已收集的词条数据，且无法恢复。')) {
+                affixData = {};
+                localStorage.removeItem('affixData');
+                renderCategories();
+                updateProgress();
+                document.getElementById('selectAllBtn').textContent = '全选';
+                
+                // 重置文件输入框，允许再次选择同一个文件
+                document.getElementById('logFile').value = '';
+                document.getElementById('importFile').value = '';
+            }
+        };
+        
+        // 从localStorage加载主题设置
+        const loadTheme = () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'light') {
+                document.body.classList.add('light-mode');
+                updateThemeIcon(true);
+            }
+        };
+        
+        // 保存主题设置到localStorage
+        const saveTheme = (isLight) => {
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        };
+        
+        // 更新主题图标
+        const updateThemeIcon = (isLight) => {
+            const icon = document.querySelector('#themeToggle .icon');
+            icon.textContent = isLight ? '☀️' : '🌙';
+        };
+        
+        // 切换主题
+        const toggleTheme = () => {
+            const isLight = document.body.classList.toggle('light-mode');
+            updateThemeIcon(isLight);
+            saveTheme(isLight);
+        };
+        
+        // 解析日志文件
+        const parseLogFile = (content) => {
+            const lines = content.split('\n');
+            let processedCount = 0;
+            
+            // 尝试解析为新的JSON格式
+            const jsonEntries = [];
+            let hasJsonFormat = false;
+            
+            lines.forEach(line => {
+                line = line.trim();
+                if (line) {
+                    try {
+                        const entry = JSON.parse(line);
+                        jsonEntries.push(entry);
+                        hasJsonFormat = true;
+                    } catch (e) {
+                        // 不是JSON格式，忽略
+                    }
+                }
+            });
+            
+            if (hasJsonFormat) {
+                // 处理JSON格式日志
+                // 每3次CheckItem才是一组完整的数据，分别对应slot1、slot2、slot3
+                const itemGroups = [];
+                let currentItem = {
+                    slot1: null,
+                    slot2: null,
+                    slot3: null
+                };
+                let checkItemCount = 0; // 统计CheckItem次数
+                
+                console.log('开始处理JSON格式日志，共', jsonEntries.length, '条条目');
+                
+                // 遍历所有条目
+                jsonEntries.forEach((entry, index) => {
+                    console.log(`处理条目 ${index}:`, JSON.stringify(entry));
+                    
+                    if (entry.component !== 'EssenceFilter') {
+                        console.log(`跳过非EssenceFilter条目`);
+                        return;
+                    }
+                    
+                    // 检查是否是CheckItem开始
+                    if (entry.action === 'CheckItem' && entry.message === 'start') {
+                        checkItemCount++;
+                        console.log(`发现第${checkItemCount}个CheckItem开始`);
+                        
+                        // 每3次CheckItem才算一组完整的数据
+                        if (checkItemCount === 1) {
+                            // 开始第一个slot
+                            currentItem = {
+                                slot1: null,
+                                slot2: null,
+                                slot3: null
+                            };
+                            console.log('创建新item用于slot1:', currentItem);
+                        } else if (checkItemCount === 2) {
+                            // 第二个slot
+                            console.log('当前item用于slot2:', currentItem);
+                        } else if (checkItemCount === 3) {
+                            // 第三个slot，准备处理
+                            console.log('当前item用于slot3:', currentItem);
+                            // 注意：这里不立即推入数组，要等slot3的skill和level处理完成后再推入
+                        }
+                    }
+                    
+                    // 处理slot1的skill信息 (第1次CheckItem期间)
+                    if (checkItemCount === 1 && entry.slot === 1 && entry.skill) {
+                        console.log('处理slot1的skill:', entry.skill);
+                        currentItem.slot1 = currentItem.slot1 || {};
+                        currentItem.slot1.skill = entry.skill;
+                        console.log('更新item:', currentItem);
+                    }
+                    
+                    // 处理slot1的level信息 (第1次CheckItem期间)
+                    if (checkItemCount === 1 && entry.slot === 1 && entry.level !== undefined && typeof entry.level === 'number') {
+                        console.log('处理slot1的level:', entry.level);
+                        currentItem.slot1 = currentItem.slot1 || {};
+                        currentItem.slot1.level = entry.level.toString();
+                        console.log('更新item:', currentItem);
+                    }
+                    
+                    // 处理slot2的skill信息 (第2次CheckItem期间)
+                    if (checkItemCount === 2 && entry.slot === 2 && entry.skill) {
+                        console.log('处理slot2的skill:', entry.skill);
+                        currentItem.slot2 = currentItem.slot2 || {};
+                        currentItem.slot2.skill = entry.skill;
+                        console.log('更新item:', currentItem);
+                    }
+                    
+                    // 处理slot2的level信息 (第2次CheckItem期间)
+                    if (checkItemCount === 2 && entry.slot === 2 && entry.level !== undefined && typeof entry.level === 'number') {
+                        console.log('处理slot2的level:', entry.level);
+                        currentItem.slot2 = currentItem.slot2 || {};
+                        currentItem.slot2.level = entry.level.toString();
+                        console.log('更新item:', currentItem);
+                    }
+                    
+                    // 处理slot3的skill信息 (第3次CheckItem期间)
+                    if (checkItemCount === 3 && entry.slot === 3 && entry.skill) {
+                        console.log('处理slot3的skill:', entry.skill);
+                        currentItem.slot3 = currentItem.slot3 || {};
+                        currentItem.slot3.skill = entry.skill;
+                        console.log('更新item:', currentItem);
+                    }
+                    
+                    // 处理slot3的level信息 (第3次CheckItem期间)
+                    if (checkItemCount === 3 && entry.slot === 3 && entry.level !== undefined && typeof entry.level === 'number') {
+                        console.log('处理slot3的level:', entry.level);
+                        currentItem.slot3 = currentItem.slot3 || {};
+                        currentItem.slot3.level = entry.level.toString();
+                        console.log('更新item:', currentItem);
+                        
+                        // 处理完slot3的level后，检查是否完整
+                        if (currentItem.slot1 && currentItem.slot1.skill && currentItem.slot1.level &&
+                            currentItem.slot2 && currentItem.slot2.skill && currentItem.slot2.level &&
+                            currentItem.slot3 && currentItem.slot3.skill && currentItem.slot3.level) {
+                            console.log('完成一个完整的item，推入数组:', currentItem);
+                            itemGroups.push(currentItem);
+                            currentItem = {
+                                slot1: null,
+                                slot2: null,
+                                slot3: null
+                            };
+                            checkItemCount = 0; // 重置计数器
+                        }
+                    }
+                });
+                
+                // 添加最后一个不完整的item（如果有）
+                if (currentItem && (currentItem.slot1 || currentItem.slot2 || currentItem.slot3)) {
+                    console.log('添加最后一个item:', currentItem);
+                    itemGroups.push(currentItem);
+                }
+                
+                console.log('itemGroups:', JSON.stringify(itemGroups, null, 2));
+                console.log('共发现', itemGroups.length, '个item');
+                
+                // 处理每个item
+                itemGroups.forEach((item, index) => {
+                    console.log(`处理item ${index}:`, JSON.stringify(item));
+                    
+                    // 检查是否有完整的3个slot
+                    if (item.slot1 && item.slot1.skill && item.slot1.level &&
+                        item.slot2 && item.slot2.skill && item.slot2.level &&
+                        item.slot3 && item.slot3.skill && item.slot3.level) {
+                        
+                        console.log('item有完整的3个slot');
+                        
+                        // 分离主属性、附加属性和技能属性
+                        let categoryId = '';
+                        let categoryPrefix = '';
+                        let attributeId = '';
+                        let attributeSuffix = '';
+                        let skillId = '';
+                        let skillSuffix = '';
+                        const levels = [];
+                        
+                        // 处理slot1
+                        const slot1Name = item.slot1.skill;
+                        const slot1Level = item.slot1.level;
+                        console.log(`slot1: ${slot1Name} - ${slot1Level}`);
+                        if (attributeMap[slot1Name]) {
+                            const info = attributeMap[slot1Name];
+                            if (info.type === 'category') {
+                                categoryId = info.id;
+                                categoryPrefix = info.prefix;
+                            } else if (info.type === 'attribute') {
+                                attributeId = info.id;
+                                attributeSuffix = info.suffix;
+                            } else if (info.type === 'skill') {
+                                skillId = info.id;
+                                skillSuffix = info.suffix;
+                            }
+                            levels.push(slot1Level);
+                        }
+                        
+                        // 处理slot2
+                        const slot2Name = item.slot2.skill;
+                        const slot2Level = item.slot2.level;
+                        console.log(`slot2: ${slot2Name} - ${slot2Level}`);
+                        if (attributeMap[slot2Name]) {
+                            const info = attributeMap[slot2Name];
+                            if (info.type === 'category') {
+                                categoryId = info.id;
+                                categoryPrefix = info.prefix;
+                            } else if (info.type === 'attribute') {
+                                attributeId = info.id;
+                                attributeSuffix = info.suffix;
+                            } else if (info.type === 'skill') {
+                                skillId = info.id;
+                                skillSuffix = info.suffix;
+                            }
+                            levels.push(slot2Level);
+                        }
+                        
+                        // 处理slot3
+                        const slot3Name = item.slot3.skill;
+                        const slot3Level = item.slot3.level;
+                        console.log(`slot3: ${slot3Name} - ${slot3Level}`);
+                        if (attributeMap[slot3Name]) {
+                            const info = attributeMap[slot3Name];
+                            if (info.type === 'category') {
+                                categoryId = info.id;
+                                categoryPrefix = info.prefix;
+                            } else if (info.type === 'attribute') {
+                                attributeId = info.id;
+                                attributeSuffix = info.suffix;
+                            } else if (info.type === 'skill') {
+                                skillId = info.id;
+                                skillSuffix = info.suffix;
+                            }
+                            levels.push(slot3Level);
+                        }
+                        
+                        console.log('levels:', levels);
+                        console.log('categoryId:', categoryId, 'attributeId:', attributeId, 'skillId:', skillId);
+                        
+                        // 生成词条ID和等级
+                        if (categoryId && attributeId && skillId && levels.length === 3) {
+                            const affixId = `${categoryId}-${attributeId}-${skillId}`;
+                            const affixBaseName = categoryPrefix + attributeSuffix + skillSuffix;
+                            const levelValue = levels.join('');
+                            
+                            console.log(`生成组合 ${affixBaseName} 等级 ${levelValue}`);
+                            
+                            // 确保affixData[affixId]是数组
+                            if (!affixData[affixId]) {
+                                affixData[affixId] = [];
+                            }
+                            
+                            // 检查是否已存在相同等级
+                            if (!affixData[affixId].includes(levelValue)) {
+                                // 添加新值
+                                affixData[affixId].push(levelValue);
+                                
+                                // 按照分数排序：前两位直接对应积分，第三位乘2
+                                affixData[affixId].sort((a, b) => {
+                                    const scoreA = parseInt(a[0]) + parseInt(a[1]) + parseInt(a[2]) * 2;
+                                    const scoreB = parseInt(b[0]) + parseInt(b[1]) + parseInt(b[2]) * 2;
+                                    return scoreB - scoreA; // 降序排列
+                                });
+                                
+                                // 如果超过5条数据，只保留前5条
+                                if (affixData[affixId].length > 5) {
+                                    affixData[affixId] = affixData[affixId].slice(0, 5);
+                                    console.log(`组合 ${affixBaseName} 已超过5条数据，只保留积分最高的5条`);
+                                }
+                                
+                                updateAffixCardDisplay(affixId, affixBaseName);
+                                console.log(`已添加组合 ${affixBaseName} 等级 ${levelValue}`);
+                                processedCount++;
+                            } else {
+                                console.log(`组合 ${affixBaseName} 等级 ${levelValue} 已存在`);
+                            }
+                        } else {
+                            console.log('无法生成词条，缺少必要信息');
+                        }
+                    } else {
+                        console.log('无法找到完整的3个slot数据');
+                    }
+                });
+            } else {
+                // 处理旧格式日志
+                const attributeLines = lines.filter(line => line.includes('属性: '));
+                
+                if (attributeLines.length === 0) {
+                    alert('未找到属性信息，请检查日志文件格式');
+                    return;
+                }
+                
+                // 处理每一行属性信息
+                attributeLines.forEach(line => {
+                    // 提取稀有度信息
+                    const rarityPart = line.match(/稀有度: ([^,]+)/);
+                    if (!rarityPart || rarityPart[1].trim() !== '无瑕') {
+                        console.log('跳过非无瑕稀有度的词条');
+                        return;
+                    }
+                    
+                    // 提取属性部分
+                    const attributePart = line.match(/属性: ([^,]+)/);
+                    if (attributePart) {
+                        const attributes = attributePart[1].split('、');
+                        
+                        // 分离主属性、附加属性和技能属性
+                        let categoryId = '';
+                        let categoryPrefix = '';
+                        let attributeId = '';
+                        let attributeSuffix = '';
+                        let skillId = '';
+                        let skillSuffix = '';
+                        const levels = [];
+                        
+                        attributes.forEach(attr => {
+                            // 提取属性名称和等级
+                            const match = attr.match(/(.+)(\+\d+)/);
+                            if (match) {
+                                const name = match[1].trim();
+                                const level = match[2].replace('+', '');
+                                
+                                if (attributeMap[name]) {
+                                    const info = attributeMap[name];
+                                    if (info.type === 'category') {
+                                        categoryId = info.id;
+                                        categoryPrefix = info.prefix;
+                                    } else if (info.type === 'attribute') {
+                                        attributeId = info.id;
+                                        attributeSuffix = info.suffix;
+                                    } else if (info.type === 'skill') {
+                                        skillId = info.id;
+                                        skillSuffix = info.suffix;
+                                    }
+                                    levels.push(level);
+                                }
+                            }
+                        });
+                        
+                        // 生成词条ID和等级
+                        if (categoryId && attributeId && skillId && levels.length === 3) {
+                            const affixId = `${categoryId}-${attributeId}-${skillId}`;
+                            const affixBaseName = categoryPrefix + attributeSuffix + skillSuffix;
+                            const levelValue = levels.join('');
+                            
+                            // 确保affixData[affixId]是数组
+                            if (!affixData[affixId]) {
+                                affixData[affixId] = [];
+                            }
+                            
+                            // 检查是否已存在相同等级
+                            if (!affixData[affixId].includes(levelValue)) {
+                                // 添加新值
+                                affixData[affixId].push(levelValue);
+                                
+                                // 按照分数排序：前两位直接对应积分，第三位乘2
+                                affixData[affixId].sort((a, b) => {
+                                    const scoreA = parseInt(a[0]) + parseInt(a[1]) + parseInt(a[2]) * 2;
+                                    const scoreB = parseInt(b[0]) + parseInt(b[1]) + parseInt(b[2]) * 2;
+                                    return scoreB - scoreA; // 降序排列
+                                });
+                                
+                                // 如果超过5条数据，只保留前5条
+                                if (affixData[affixId].length > 5) {
+                                    affixData[affixId] = affixData[affixId].slice(0, 5);
+                                    console.log(`组合 ${affixBaseName} 已超过5条数据，只保留积分最高的5条`);
+                                }
+                                
+                                updateAffixCardDisplay(affixId, affixBaseName);
+                                console.log(`已添加组合 ${affixBaseName} 等级 ${levelValue}`);
+                                processedCount++;
+                            } else {
+                                console.log(`组合 ${affixBaseName} 等级 ${levelValue} 已存在`);
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // 保存数据并更新进度
+            saveToLocalStorage();
+            updateProgress();
+            alert(`日志解析完成，已处理 ${processedCount} 条属性信息`);
+        };
+        
+        // 打开输入框弹窗
+        const openInputModal = (affixId, affixBaseName, index = -1) => {
+            currentEditingAffix = { id: affixId, baseName: affixBaseName };
+            currentEditingIndex = index;
+            const modal = document.getElementById('inputModal');
+            const affixNameEl = document.getElementById('modalAffixName');
+            const input1 = document.getElementById('input1');
+            const input2 = document.getElementById('input2');
+            const input3 = document.getElementById('input3');
+            const existingValuesEl = document.getElementById('existingValues');
+            const existingListEl = document.getElementById('existingList');
+            
+            affixNameEl.textContent = affixBaseName;
+            
+            // 显示已有数值列表
+            if (affixData[affixId] && affixData[affixId].length > 0) {
+                existingValuesEl.style.display = 'block';
+                existingListEl.innerHTML = '';
+                
+                affixData[affixId].forEach((value, idx) => {
+                    const itemEl = document.createElement('div');
+                    itemEl.className = 'existing-item';
+                    if (idx === index) {
+                        itemEl.classList.add('selected');
+                    }
+                    itemEl.innerHTML = `
+                        <span>${value}</span>
+                        <span class="remove-btn" data-index="${idx}">×</span>
+                    `;
+                    
+                    // 点击选择
+                    itemEl.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('remove-btn')) {
+                            currentEditingIndex = idx;
+                            const value = affixData[affixId][idx];
+                            input1.value = value[0];
+                            input2.value = value[1];
+                            input3.value = value[2];
+                            
+                            // 更新选中状态
+                            document.querySelectorAll('.existing-item').forEach(el => {
+                                el.classList.remove('selected');
+                            });
+                            itemEl.classList.add('selected');
+                        }
+                    });
+                    
+                    // 点击删除
+                    itemEl.querySelector('.remove-btn').addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const removeIdx = parseInt(e.target.dataset.index);
+                        if (confirm(`确定要删除数值 ${affixData[affixId][removeIdx]} 吗？`)) {
+                            affixData[affixId].splice(removeIdx, 1);
+                            if (affixData[affixId].length === 0) {
+                                delete affixData[affixId];
+                            }
+                            updateAffixCardDisplay(affixId, affixBaseName);
+                            saveToLocalStorage();
+                            updateProgress();
+                            closeInputModal();
+                        }
+                    });
+                    
+                    existingListEl.appendChild(itemEl);
+                });
+            } else {
+                existingValuesEl.style.display = 'none';
+            }
+            
+            // 如果有数据则填充，否则使用默认值
+            if (affixData[affixId] && index >= 0 && index < affixData[affixId].length) {
+                const value = affixData[affixId][index];
+                input1.value = value[0];
+                input2.value = value[1];
+                input3.value = value[2];
+            } else {
+                input1.value = 1;
+                input2.value = 1;
+                input3.value = 1;
+            }
+            
+            modal.classList.add('active');
+            input1.focus();
+            input1.select();
+        };
+        
+        // 关闭输入框弹窗
+        const closeInputModal = () => {
+            const modal = document.getElementById('inputModal');
+            modal.classList.remove('active');
+            currentEditingAffix = null;
+        };
+        
+        // 确认输入
+        const confirmInput = () => {
+            const input1 = document.getElementById('input1');
+            const input2 = document.getElementById('input2');
+            const input3 = document.getElementById('input3');
+            
+            const val1 = parseInt(input1.value);
+            const val2 = parseInt(input2.value);
+            const val3 = parseInt(input3.value);
+            
+            // 验证范围
+            if (val1 < 1 || val1 > 6 || val2 < 1 || val2 > 6 || val3 < 1 || val3 > 3) {
+                alert('输入范围错误：第一、二位1-6，第三位1-3');
+                return;
+            }
+            
+            const value = `${val1}${val2}${val3}`;
+            
+            // 确保affixData[affixId]是数组
+            if (!affixData[currentEditingAffix.id]) {
+                affixData[currentEditingAffix.id] = [];
+            }
+            
+            if (currentEditingIndex >= 0) {
+                // 更新现有值
+                affixData[currentEditingAffix.id][currentEditingIndex] = value;
+            } else {
+                // 添加新值
+                affixData[currentEditingAffix.id].push(value);
+            }
+            
+            // 按照分数排序：前两位直接对应积分，第三位乘2
+            affixData[currentEditingAffix.id].sort((a, b) => {
+                const scoreA = parseInt(a[0]) + parseInt(a[1]) + parseInt(a[2]) * 2;
+                const scoreB = parseInt(b[0]) + parseInt(b[1]) + parseInt(b[2]) * 2;
+                return scoreB - scoreA; // 降序排列
+            });
+            
+            // 如果超过5条数据，只保留前5条
+            if (affixData[currentEditingAffix.id].length > 5) {
+                affixData[currentEditingAffix.id] = affixData[currentEditingAffix.id].slice(0, 5);
+                console.log(`组合 ${currentEditingAffix.baseName} 已超过5条数据，只保留积分最高的5条`);
+            }
+            
+            // 更新卡片显示
+            updateAffixCardDisplay(currentEditingAffix.id, currentEditingAffix.baseName);
+            
+            saveToLocalStorage();
+            updateProgress();
+            closeInputModal();
+        };
+        
+        // 更新卡片显示
+        const updateAffixCardDisplay = (affixId, baseName) => {
+            const cardEl = document.getElementById(`affix-${affixId}`);
+            
+            if (cardEl) {
+                // 清空卡片内容
+                cardEl.innerHTML = '';
+                
+                // 生成新的内容
+                const affixContent = document.createElement('div');
+                affixContent.className = 'affix-content';
+                
+                // 组合名
+                const affixName = document.createElement('div');
+                affixName.className = 'affix-name';
+                affixName.id = `name-${affixId}`;
+                affixName.textContent = baseName;
+                affixContent.appendChild(affixName);
+                
+                // 等级数据
+                if (affixData[affixId] && affixData[affixId].length > 0) {
+                    // 按照分数排序：前两位直接对应积分，第三位乘2
+                    const sortedLevels = [...affixData[affixId]].sort((a, b) => {
+                        const scoreA = parseInt(a[0]) + parseInt(a[1]) + parseInt(a[2]) * 2;
+                        const scoreB = parseInt(b[0]) + parseInt(b[1]) + parseInt(b[2]) * 2;
+                        return scoreB - scoreA; // 降序排列
+                    });
+                    
+                    const affixLevels = document.createElement('div');
+                    affixLevels.className = 'affix-levels';
+                    sortedLevels.forEach(level => {
+                        const levelEl = document.createElement('div');
+                        levelEl.className = 'affix-level';
+                        levelEl.textContent = level;
+                        affixLevels.appendChild(levelEl);
+                    });
+                    affixContent.appendChild(affixLevels);
+                    cardEl.classList.add('selected');
+                } else {
+                    cardEl.classList.remove('selected');
+                }
+                
+                cardEl.appendChild(affixContent);
+                
+                // 重新绑定点击事件
+                cardEl.addEventListener('click', () => {
+                    openInputModal(affixId, baseName);
+                });
+            }
+        };
+        
+        // 删除数据
+        const deleteInput = () => {
+            if (currentEditingIndex >= 0 && affixData[currentEditingAffix.id]) {
+                // 删除特定索引的值
+                affixData[currentEditingAffix.id].splice(currentEditingIndex, 1);
+                
+                // 如果数组为空，删除整个条目
+                if (affixData[currentEditingAffix.id].length === 0) {
+                    delete affixData[currentEditingAffix.id];
+                }
+            } else {
+                // 删除整个条目
+                delete affixData[currentEditingAffix.id];
+            }
+            
+            // 更新卡片显示
+            updateAffixCardDisplay(currentEditingAffix.id, currentEditingAffix.baseName);
+            
+            saveToLocalStorage();
+            updateProgress();
+            closeInputModal();
+        };
+        
+        // 导出数据
+        const exportData = () => {
+            if (confirm('确定要导出数据吗？导出的文件将包含所有已收集的词条数据。')) {
+                const data = {
+                    affixData: affixData,
+                    theme: localStorage.getItem('theme')
+                };
+                
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `matrix-affix-data-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        };
+        
+        // 初始化
+        const init = () => {
+            loadFromLocalStorage();
+            loadTheme();
+            renderCategories();
+            updateProgress();
+            
+            // 绑定按钮事件
+            document.getElementById('selectAllBtn').addEventListener('click', toggleSelectAll);
+            document.getElementById('resetBtn').addEventListener('click', resetProgress);
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+            
+            // 绑定弹窗按钮事件
+            document.getElementById('confirmBtn').addEventListener('click', confirmInput);
+            document.getElementById('addBtn').addEventListener('click', () => {
+                // 确认当前输入
+                confirmInput();
+                // 重新打开弹窗，准备添加新值
+                openInputModal(currentEditingAffix.id, currentEditingAffix.baseName);
+            });
+            document.getElementById('deleteBtn').addEventListener('click', deleteInput);
+            document.getElementById('cancelBtn').addEventListener('click', closeInputModal);
+            
+            // 导入日志文件
+            document.getElementById('logImportBtn').addEventListener('click', () => {
+                document.getElementById('logFile').click();
+            });
+            
+            document.getElementById('logFile').addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        const content = event.target.result;
+                        parseLogFile(content);
+                    };
+                    reader.readAsText(file);
+                }
+            });
+            
+            // 导入文本
+            document.getElementById('textImportBtn').addEventListener('click', () => {
+                document.getElementById('textImportModal').style.display = 'block';
+            });
+            
+            // 关闭文本输入弹窗
+            document.querySelector('.close').addEventListener('click', () => {
+                document.getElementById('textImportModal').style.display = 'none';
+            });
+            
+            document.getElementById('cancelTextImport').addEventListener('click', () => {
+                document.getElementById('textImportModal').style.display = 'none';
+            });
+            
+            // 确认导入文本
+            document.getElementById('confirmTextImport').addEventListener('click', () => {
+                const text = document.getElementById('textInput').value;
+                if (text) {
+                    parseLogText(text);
+                    document.getElementById('textImportModal').style.display = 'none';
+                    document.getElementById('textInput').value = '';
+                }
+            });
+            
+            // 点击弹窗背景关闭
+            document.getElementById('textImportModal').addEventListener('click', (e) => {
+                if (e.target.id === 'textImportModal') {
+                    document.getElementById('textImportModal').style.display = 'none';
+                }
+            });
+            
+            // 输入框回车确认和自动跳转
+            const inputs = [document.getElementById('input1'), document.getElementById('input2'), document.getElementById('input3')];
+            inputs.forEach((input, index) => {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        confirmInput();
+                    } else if (e.key >= '0' && e.key <= '9') {
+                        // 输入数字后自动跳转到下一位
+                        setTimeout(() => {
+                            if (input.value.length === 1 && index < inputs.length - 1) {
+                                inputs[index + 1].focus();
+                                inputs[index + 1].select();
+                            } else if (input.value.length === 1 && index === inputs.length - 1) {
+                                // 输入完三位数后自动确认
+                                confirmInput();
+                            }
+                        }, 10);
+                    }
+                });
+                
+                // 支持删除键
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && input.value === '' && index > 0) {
+                        inputs[index - 1].focus();
+                        inputs[index - 1].select();
+                    }
+                });
+            });
+            
+            // 点击弹窗背景关闭
+            document.getElementById('inputModal').addEventListener('click', (e) => {
+                if (e.target.id === 'inputModal') {
+                    closeInputModal();
+                }
+            });
+            
+            // 绑定导出导入按钮事件
+            document.getElementById('exportBtn').addEventListener('click', exportData);
+            document.getElementById('importBtn').addEventListener('click', () => {
+                document.getElementById('importFile').click();
+            });
+            document.getElementById('importFile').addEventListener('change', importData);
+        };
+        
+        // 导入数据
+        const importData = (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const data = JSON.parse(event.target.result);
+                    if (data.affixData) {
+                        affixData = data.affixData;
+                        saveToLocalStorage();
+                        
+                        if (data.theme) {
+                            localStorage.setItem('theme', data.theme);
+                            loadTheme();
+                        }
+                        
+                        renderCategories();
+                        updateProgress();
+                        alert('数据导入成功！');
+                    } else {
+                        alert('导入失败：数据格式错误');
+                    }
+                } catch (error) {
+                    alert('导入失败：文件格式错误');
+                }
+            };
+            reader.readAsText(file);
+            
+            // 重置文件输入，以便可以重复选择同一个文件
+            e.target.value = '';
+        };
+        
+        // 地图刷取推荐系统
+        
+        // 初始化掉落配置选择器
+        const initConfigSelector = () => {
+            // 生成附加属性选项
+            const addAttrGrid = document.querySelector('.add-attr-grid');
+            addAttrGrid.innerHTML = '';
+            allAddProps.forEach(prop => {
+                const item = document.createElement('label');
+                item.className = 'sub-attr-item';
+                item.innerHTML = `
+                    <input type="radio" name="sub-attr" value="${prop}" data-type="add">
+                    <span>${prop}</span>
+                `;
+                addAttrGrid.appendChild(item);
+            });
+            
+            // 生成技能属性选项
+            const skillAttrGrid = document.querySelector('.skill-attr-grid');
+            skillAttrGrid.innerHTML = '';
+            allSkillProps.forEach(prop => {
+                const item = document.createElement('label');
+                item.className = 'sub-attr-item';
+                item.innerHTML = `
+                    <input type="radio" name="sub-attr" value="${prop}" data-type="skill">
+                    <span>${prop}</span>
+                `;
+                skillAttrGrid.appendChild(item);
+            });
+            
+            // 主属性选择限制（最多选3个）
+            const mainAttrCheckboxes = document.querySelectorAll('.main-attr');
+            mainAttrCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', () => {
+                    const checkedBoxes = document.querySelectorAll('.main-attr:checked');
+                    if (checkedBoxes.length > 3) {
+                        checkbox.checked = false;
+                        alert('主属性最多只能选择3个！');
+                    }
+                });
+            });
+            
+            // 标签页切换
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 移除所有active类
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.sub-attr-grid').forEach(grid => grid.classList.remove('active'));
+                    
+                    // 添加active类到当前按钮和对应网格
+                    btn.classList.add('active');
+                    const tab = btn.dataset.tab;
+                    document.querySelector(`.${tab}-attr-grid`).classList.add('active');
+                    
+                    // 清除选中的副属性
+                    document.querySelectorAll('input[name="sub-attr"]').forEach(input => input.checked = false);
+                });
+            });
+        };
+        
+        // 获取用户选择的配置
+        const getUserConfig = () => {
+            const mainAttrs = Array.from(document.querySelectorAll('.main-attr:checked')).map(cb => cb.value);
+            const subAttr = document.querySelector('input[name="sub-attr"]:checked');
+            
+            return {
+                mainAttrs,
+                subAttr: subAttr ? {
+                    value: subAttr.value,
+                    type: subAttr.dataset.type
+                } : null
+            };
+        };
+        
+        // 检查配置是否完整
+        const isConfigComplete = (config) => {
+            return config.mainAttrs.length === 3 && config.subAttr !== null;
+        };
+        
+        // 从词条名称解析组合
+        const parseAffixName = (name) => {
+            if (name.length < 3) return null;
+            
+            const prefix = name[0];
+            const attrSuffix = name[1];
+            const skillSuffix = name[2];
+            
+            // 映射前缀到主属性
+            const mainAttrMap = {
+                '敏': '敏捷提升',
+                '力': '力量提升',
+                '意': '意志提升',
+                '智': '智识提升',
+                '主': '主能力提升'
+            };
+            
+            // 映射属性后缀到附加属性
+            const attrMap = {
+                '攻': '攻击提升',
+                '生': '生命提升',
+                '物': '物理伤害提升',
+                '灼': '灼热伤害提升',
+                '电': '电磁伤害提升',
+                '寒': '寒冷伤害提升',
+                '自': '自然伤害提升',
+                '暴': '暴击率提升',
+                '源': '源石技艺提升',
+                '终': '终结技充能效率提升',
+                '法': '法术伤害提升',
+                '疗': '治疗效率提升'
+            };
+            
+            // 映射技能后缀到技能属性
+            const skillMap = {
+                '强': '强攻',
+                '压': '压制',
+                '追': '追袭',
+                '粉': '粉碎',
+                '昂': '昂扬',
+                '巧': '巧技',
+                '残': '残暴',
+                '附': '附术',
+                '医': '医疗',
+                '切': '切骨',
+                '迸': '迸发',
+                '夜': '夜幕',
+                '流': '流转',
+                '效': '效益'
+            };
+            
+            return {
+                mainAttr: mainAttrMap[prefix],
+                attr: attrMap[attrSuffix],
+                skill: skillMap[skillSuffix]
+            };
+        };
+        
+        // 获取主属性ID
+        const getCategoryId = (mainAttr) => {
+            return {
+                '敏捷提升': 'agility',
+                '力量提升': 'strength',
+                '意志提升': 'will',
+                '智识提升': 'intelligence',
+                '主能力提升': 'main'
+            }[mainAttr];
+        };
+        
+        // 获取附加属性ID
+        const getAttributeId = (attr) => {
+            return {
+                '攻击提升': 'attack',
+                '生命提升': 'life',
+                '物理伤害提升': 'physical',
+                '灼热伤害提升': 'fire',
+                '电磁伤害提升': 'electro',
+                '寒冷伤害提升': 'cold',
+                '自然伤害提升': 'nature',
+                '暴击率提升': 'crit',
+                '源石技艺提升': 'origin',
+                '终结技充能效率提升': 'ultimate',
+                '终结技充能效率提升': 'ultimate',
+                '法术伤害提升': 'magic',
+                '治疗效率提升': 'heal'
+            }[attr];
+        };
+        
+        // 获取技能属性ID
+        const getSkillId = (skill) => {
+            return {
+                '强攻': 'strong',
+                '压制': 'suppress',
+                '追袭': 'pursue',
+                '粉碎': 'crush',
+                '昂扬': '昂扬',
+                '巧技': 'skill',
+                '残暴': 'brutal',
+                '附术': 'attach',
+                '医疗': 'medical',
+                '切骨': 'bone',
+                '迸发': 'burst',
+                '夜幕': 'night',
+                '流转': 'flow',
+                '效益': 'benefit'
+            }[skill];
+        };
+        
+        // 检查用户是否已拥有该组合
+        const hasAffixCombo = (mainAttr, attr, skill) => {
+            // 生成可能的词条ID
+            const mainId = getCategoryId(mainAttr);
+            const attrId = getAttributeId(attr);
+            const skillId = getSkillId(skill);
+            
+            if (!mainId || !attrId || !skillId) return false;
+            
+            // 检查是否存在该组合
+            const affixId = `${mainId}-${attrId}-${skillId}`;
+            return affixData[affixId] !== undefined;
+        };
+        
+        // 计算推荐
+        const calculateRecommendations = (userInput, userCollection) => {
+            if (userInput) {
+                // 模式A：精准配方推荐
+                const combo = parseAffixName(userInput);
+                if (!combo || !combo.mainAttr || !combo.attr || !combo.skill) {
+                    return [{ warning: '输入格式错误，请输入正确的组合（如：敏攻强）' }];
+                }
+                
+                // 已拥有检测
+                if (hasAffixCombo(combo.mainAttr, combo.attr, combo.skill)) {
+                    return [{ warning: '您已拥有该组合，无需重复刷取' }];
+                }
+                
+                // 生成两个方案
+                const plans = [];
+                
+                // 方案1：锁定附加属性
+                Object.entries(stageData).forEach(([stage, data]) => {
+                    if (data.add.includes(combo.attr)) {
+                        // 选择不重复的3个主属性
+                        const allMainAttrs = ["敏捷提升", "力量提升", "意志提升", "智识提升", "主能力提升"];
+                        const selectedMainAttrs = [combo.mainAttr];
+                        
+                        // 添加其他两个不重复的主属性
+                        allMainAttrs.forEach(attr => {
+                            if (attr !== combo.mainAttr && selectedMainAttrs.length < 3) {
+                                selectedMainAttrs.push(attr);
+                            }
+                        });
+                        
+                        // 计算有效掉落率
+                        const TotalPossibilities = 3 * 8; // 主属性3种可能，随机副词条8种可能
+                        let OwnedCount = 0;
+                        const missingSkills = [];
+                        
+                        // 遍历所有可能的组合结果
+                        selectedMainAttrs.forEach(mainAttr => {
+                            data.skill.forEach(skillAttr => {
+                                if (hasAffixCombo(mainAttr, combo.attr, skillAttr)) {
+                                    OwnedCount++;
+                                } else {
+                                    missingSkills.push(skillAttr);
+                                }
+                            });
+                        });
+                        
+                        // 计算有效概率
+                        const EffectiveProbability = (TotalPossibilities - OwnedCount) / TotalPossibilities;
+                        
+                        plans.push({
+                            stage,
+                            config: {
+                                mainAttrs: selectedMainAttrs,
+                                subAttr: {
+                                    value: combo.attr,
+                                    type: 'add'
+                                }
+                            },
+                            must: [combo.attr],
+                            random: missingSkills.length > 0 ? missingSkills : data.skill.filter(s => s !== combo.skill),
+                            probability: EffectiveProbability,
+                            score: EffectiveProbability,
+                            totalPossibilities: TotalPossibilities,
+                            ownedCount: OwnedCount,
+                            ownedCombos: selectedMainAttrs.flatMap(mainAttr => 
+                                data.skill.map(skillAttr => ({ main: mainAttr, add: combo.attr, skill: skillAttr }))
+                                    .filter(c => hasAffixCombo(c.main, c.add, c.skill))
+                            )
+                        });
+                    }
+                });
+                
+                // 方案2：锁定技能属性
+                Object.entries(stageData).forEach(([stage, data]) => {
+                    if (data.skill.includes(combo.skill)) {
+                        // 选择不重复的3个主属性
+                        const allMainAttrs = ["敏捷提升", "力量提升", "意志提升", "智识提升", "主能力提升"];
+                        const selectedMainAttrs = [combo.mainAttr];
+                        
+                        // 添加其他两个不重复的主属性
+                        allMainAttrs.forEach(attr => {
+                            if (attr !== combo.mainAttr && selectedMainAttrs.length < 3) {
+                                selectedMainAttrs.push(attr);
+                            }
+                        });
+                        
+                        // 计算有效掉落率
+                        const TotalPossibilities = 3 * 8; // 主属性3种可能，随机副词条8种可能
+                        let OwnedCount = 0;
+                        const missingAttrs = [];
+                        
+                        // 遍历所有可能的组合结果
+                        selectedMainAttrs.forEach(mainAttr => {
+                            data.add.forEach(addAttr => {
+                                if (hasAffixCombo(mainAttr, addAttr, combo.skill)) {
+                                    OwnedCount++;
+                                } else {
+                                    missingAttrs.push(addAttr);
+                                }
+                            });
+                        });
+                        
+                        // 计算有效概率
+                        const EffectiveProbability = (TotalPossibilities - OwnedCount) / TotalPossibilities;
+                        
+                        plans.push({
+                            stage,
+                            config: {
+                                mainAttrs: selectedMainAttrs,
+                                subAttr: {
+                                    value: combo.skill,
+                                    type: 'skill'
+                                }
+                            },
+                            must: [combo.skill],
+                            random: missingAttrs.length > 0 ? missingAttrs : data.add.filter(a => a !== combo.attr),
+                            probability: EffectiveProbability,
+                            score: EffectiveProbability,
+                            totalPossibilities: TotalPossibilities,
+                            ownedCount: OwnedCount,
+                            ownedCombos: selectedMainAttrs.flatMap(mainAttr => 
+                                data.add.map(addAttr => ({ main: mainAttr, add: addAttr, skill: combo.skill }))
+                                    .filter(c => hasAffixCombo(c.main, c.add, c.skill))
+                            )
+                        });
+                    }
+                });
+                
+                // 排序并返回前3个（优先考虑概率）
+                plans.sort((a, b) => {
+                    // 首先比较概率
+                    if (b.probability !== a.probability) {
+                        return b.probability - a.probability;
+                    }
+                    // 然后比较随机可能的数量
+                    return b.random.length - a.random.length;
+                });
+                return plans.slice(0, 3);
+            } else {
+                // 模式B：智能补缺推荐
+                // 分析用户缺口
+                
+                // 生成所有可能的组合
+                const allPossibleCombos = [];
+                const mainAttrs = ["敏捷提升", "力量提升", "意志提升", "智识提升", "主能力提升"];
+                const addAttrs = ["攻击提升", "生命提升", "物理伤害提升", "灼热伤害提升", "电磁伤害提升", "寒冷伤害提升", "自然伤害提升", "暴击率提升", "源石技艺提升", "终结技充能效率提升", "法术伤害提升", "治疗效率提升"];
+                const skillAttrs = ["强攻", "压制", "追袭", "粉碎", "巧技", "迸发", "流转", "效益", "昂扬", "附术", "医疗", "切骨", "残暴", "夜幕"];
+                
+                mainAttrs.forEach(mainAttr => {
+                    addAttrs.forEach(addAttr => {
+                        skillAttrs.forEach(skillAttr => {
+                            allPossibleCombos.push({
+                                main: mainAttr,
+                                add: addAttr,
+                                skill: skillAttr
+                            });
+                        });
+                    });
+                });
+                
+                if (allPossibleCombos.length === 0) {
+                    return [{ warning: '暂无推荐方案' }];
+                }
+                
+                // 生成所有可能的3主属性组合（共10种）
+                const mainAttrCombinations = [];
+                for (let i = 0; i < mainAttrs.length; i++) {
+                    for (let j = i + 1; j < mainAttrs.length; j++) {
+                        for (let k = j + 1; k < mainAttrs.length; k++) {
+                            mainAttrCombinations.push([mainAttrs[i], mainAttrs[j], mainAttrs[k]]);
+                        }
+                    }
+                }
+                
+                // 全局贪心搜索
+                const allPlans = [];
+                
+                // 遍历所有关卡
+                Object.entries(stageData).forEach(([stage, data]) => {
+                    // 遍历所有可能的副属性作为lockedSub
+                    const allPossibleSubAttrs = [...data.add, ...data.skill];
+                    
+                    allPossibleSubAttrs.forEach(lockedSub => {
+                        // 确定lockedSub的类型
+                        const subType = data.add.includes(lockedSub) ? 'add' : 'skill';
+                        
+                        // 遍历所有可能的3主属性组合
+                        mainAttrCombinations.forEach(mainCombo => {
+                            // 计算有效掉落率
+                            const TotalPossibilities = 3 * 8; // 主属性3种可能，随机副词条8种可能
+                            let OwnedCount = 0;
+                            const coveredCombos = [];
+                            
+                            // 遍历所有可能的组合结果
+                            mainCombo.forEach(mainAttr => {
+                                if (subType === 'add') {
+                                    // 锁定附加属性，随机技能属性
+                                    data.skill.forEach(skillAttr => {
+                                        if (hasAffixCombo(mainAttr, lockedSub, skillAttr)) {
+                                            OwnedCount++;
+                                        } else {
+                                            coveredCombos.push({ main: mainAttr, add: lockedSub, skill: skillAttr });
+                                        }
+                                    });
+                                } else {
+                                    // 锁定技能属性，随机附加属性
+                                    data.add.forEach(addAttr => {
+                                        if (hasAffixCombo(mainAttr, addAttr, lockedSub)) {
+                                            OwnedCount++;
+                                        } else {
+                                            coveredCombos.push({ main: mainAttr, add: addAttr, skill: lockedSub });
+                                        }
+                                    });
+                                }
+                            });
+                            
+                            // 收集已有的组合
+                            const ownedCombos = [];
+                            mainCombo.forEach(mainAttr => {
+                                if (subType === 'add') {
+                                    data.skill.forEach(skillAttr => {
+                                        if (hasAffixCombo(mainAttr, lockedSub, skillAttr)) {
+                                            ownedCombos.push({ main: mainAttr, add: lockedSub, skill: skillAttr });
+                                        }
+                                    });
+                                } else {
+                                    data.add.forEach(addAttr => {
+                                        if (hasAffixCombo(mainAttr, addAttr, lockedSub)) {
+                                            ownedCombos.push({ main: mainAttr, add: addAttr, skill: lockedSub });
+                                        }
+                                    });
+                                }
+                            });
+                            
+                            // 计算有效概率
+                            const EffectiveProbability = (TotalPossibilities - OwnedCount) / TotalPossibilities;
+                            
+                            // 添加到方案列表
+                            if (EffectiveProbability > 0) {
+                                allPlans.push({
+                                    stage,
+                                    config: {
+                                        mainAttrs: mainCombo,
+                                        subAttr: {
+                                            value: lockedSub,
+                                            type: subType
+                                        }
+                                    },
+                                    must: [lockedSub],
+                                    random: subType === 'add' ? data.skill : data.add,
+                                    score: EffectiveProbability,
+                                    effectiveProbability: EffectiveProbability,
+                                    totalPossibilities: TotalPossibilities,
+                                    ownedCount: OwnedCount,
+                                    ownedCombos: ownedCombos,
+                                    coveredCombos: coveredCombos.slice(0, 5),
+                                    isAutoRecommend: true // 标记为智能推荐
+                                });
+                            }
+                        });
+                    });
+                });
+                
+                // 排序并返回前3个
+                allPlans.sort((a, b) => b.score - a.score);
+                return allPlans.slice(0, 3).length > 0 ? allPlans.slice(0, 3) : [{ warning: '暂无推荐方案' }];
+            }
+        };
+        
+        // 渲染推荐结果
+        const renderRecommendations = (recommendations) => {
+            const recommendList = document.getElementById('recommendList');
+            recommendList.innerHTML = '';
+            
+            if (recommendations.length === 0) {
+                recommendList.innerHTML = '<div class="no-recommendations">暂无推荐</div>';
+                return;
+            }
+            
+            recommendations.forEach(rec => {
+                const card = document.createElement('div');
+                card.className = 'recommend-card';
+                if (rec.warning) {
+                    card.classList.add('warning');
+                    card.innerHTML = `
+                        <h3>推荐结果</h3>
+                        <div class="warning-text">${rec.warning}</div>
+                    `;
+                } else {
+                    // 构建卡片内容
+                    let cardContent = `
+                        <h3>推荐前往：${rec.stage}</h3>
+                        <div class="recommend-config">
+                            <div class="recommend-config-label">主属性刻写</div>
+                            <div class="recommend-config-value">${rec.config.mainAttrs.map(attr => attr.charAt(0)).join('、')}</div>
+                        </div>
+                        <div class="recommend-config">
+                            <div class="recommend-config-label">附加/技能属性刻写</div>
+                            <div class="recommend-config-value">${rec.config.subAttr.value}</div>
+                        </div>
+                    `;
+                    
+                    // 显示有效掉落率
+                    if (rec.probability || rec.score) {
+                        const probability = rec.probability || rec.score;
+                        const availableCount = rec.totalPossibilities - rec.ownedCount;
+                        cardContent += `
+                            <div class="recommend-config">
+                                <div class="recommend-config-label">掉落未拥有基质概率</div>
+                                <div class="recommend-config-value">
+                                    ${(probability * 100).toFixed(2)}% (${availableCount}/${rec.totalPossibilities})
+                                    <span class="owned-info" title="点击查看已有组合" style="cursor: pointer; color: #3a86ff;">?</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    
+                    // 显示掉落预测
+                    cardContent += `
+                        <div class="recommend-prediction">
+                            <div class="recommend-prediction-label">掉落预测</div>
+                            <div class="recommend-prediction-value">
+                                必定获得：<span class="must">${rec.must.join('、')}</span><br>
+                                随机可能：<span class="random">${rec.random.join('、')}</span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // 显示主要获取（如果有，但智能推荐不显示）
+                    if (rec.coveredCombos && rec.coveredCombos.length > 0 && !rec.isAutoRecommend) {
+                        const mainGets = rec.coveredCombos.map(combo => {
+                            // 转换为类似‘敏攻强’的显示方式
+                            const mainPrefix = combo.main.charAt(0);
+                            const attrSuffix = {
+                                '攻击提升': '攻',
+                                '生命提升': '生',
+                                '物理伤害提升': '物',
+                                '灼热伤害提升': '灼',
+                                '电磁伤害提升': '电',
+                                '寒冷伤害提升': '寒',
+                                '自然伤害提升': '自',
+                                '暴击率提升': '暴',
+                                '源石技艺提升': '源',
+                                '终结技充能效率提升': '终',
+                                '法术伤害提升': '法',
+                                '治疗效率提升': '疗'
+                            }[combo.add] || combo.add;
+                            const skillSuffix = {
+                                '强攻': '强',
+                                '压制': '压',
+                                '追袭': '追',
+                                '粉碎': '粉',
+                                '昂扬': '昂',
+                                '巧技': '巧',
+                                '残暴': '残',
+                                '附术': '附',
+                                '医疗': '医',
+                                '切骨': '切',
+                                '迸发': '迸',
+                                '夜幕': '夜',
+                                '流转': '流',
+                                '效益': '效'
+                            }[combo.skill] || combo.skill;
+                            return mainPrefix + attrSuffix + skillSuffix;
+                        }).join('、');
+                        cardContent += `
+                            <div class="recommend-config">
+                                <div class="recommend-config-label">主要获取</div>
+                                <div class="recommend-config-value">${mainGets}</div>
+                            </div>
+                        `;
+                    }
+                    
+                    card.innerHTML = cardContent;
+                    
+                    // 为问号图标添加点击事件
+                    const ownedInfoSpan = card.querySelector('.owned-info');
+                    if (ownedInfoSpan && rec.ownedCombos && rec.ownedCombos.length > 0) {
+                        ownedInfoSpan.addEventListener('click', () => {
+                            const ownedList = rec.ownedCombos.map(combo => {
+                                const mainPrefix = combo.main.charAt(0);
+                                const attrSuffix = {
+                                    '攻击提升': '攻',
+                                    '生命提升': '生',
+                                    '物理伤害提升': '物',
+                                    '灼热伤害提升': '灼',
+                                    '电磁伤害提升': '电',
+                                    '寒冷伤害提升': '寒',
+                                    '自然伤害提升': '自',
+                                    '暴击率提升': '暴',
+                                    '源石技艺提升': '源',
+                                    '终结技充能效率提升': '终',
+                                    '法术伤害提升': '法',
+                                    '治疗效率提升': '疗'
+                                }[combo.add] || combo.add;
+                                const skillSuffix = {
+                                    '强攻': '强',
+                                    '压制': '压',
+                                    '追袭': '追',
+                                    '粉碎': '粉',
+                                    '昂扬': '昂',
+                                    '巧技': '巧',
+                                    '残暴': '残',
+                                    '附术': '附',
+                                    '医疗': '医',
+                                    '切骨': '切',
+                                    '迸发': '迸',
+                                    '夜幕': '夜',
+                                    '流转': '流',
+                                    '效益': '效'
+                                }[combo.skill] || combo.skill;
+                                return mainPrefix + attrSuffix + skillSuffix;
+                            }).join('、');
+                            alert(`已有组合：${ownedList}`);
+                        });
+                    }
+                }
+                recommendList.appendChild(card);
+            });
+        };
+        
+        // 绑定推荐按钮事件
+        const bindRecommendEvents = () => {
+            // 推荐按钮
+            document.getElementById('recommendBtn').addEventListener('click', () => {
+                const targetAffix = document.getElementById('targetAffix').value.trim();
+                if (!targetAffix) {
+                    alert('请输入目标组合（如：敏攻强）');
+                    return;
+                }
+                const recommendations = calculateRecommendations(targetAffix, affixData);
+                renderRecommendations(recommendations);
+            });
+            
+            // 智能推荐按钮
+            document.getElementById('autoRecommendBtn').addEventListener('click', () => {
+                const recommendations = calculateRecommendations(null, affixData);
+                renderRecommendations(recommendations);
+            });
+        };
+        
+        // 页面加载完成后初始化
+        window.addEventListener('DOMContentLoaded', () => {
+            init();
+            bindRecommendEvents();
+        });
+    </script>
+</body>
+</html>
